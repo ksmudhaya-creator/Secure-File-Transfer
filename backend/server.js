@@ -1,19 +1,30 @@
-require('dotenv').config();
-const express = require('express');
-const cors = require('cors');
-const helmet = require('helmet');
-const connectDB = require('./config/db');
-const User = require('./models/User');
-const { apiLimiter } = require('./middleware/rateLimiter');
-const errorHandler = require('./middleware/errorHandler');
-const { startExpirationDaemon } = require('./services/sessionExpirationService');
+require("dotenv").config();
+const express = require("express");
+const cors = require("cors");
+const helmet = require("helmet");
+const connectDB = require("./config/db");
+const User = require("./models/User");
+const { apiLimiter } = require("./middleware/rateLimiter");
+const errorHandler = require("./middleware/errorHandler");
+const {
+  startExpirationDaemon,
+} = require("./services/sessionExpirationService");
 
-const authRoutes = require('./routes/authRoutes');
-const fileRoutes = require('./routes/fileRoutes');
-const sessionRoutes = require('./routes/sessionRoutes');
-const adminRoutes = require('./routes/adminRoutes');
+const authRoutes = require("./routes/authRoutes");
+const fileRoutes = require("./routes/fileRoutes");
+const sessionRoutes = require("./routes/sessionRoutes");
+const adminRoutes = require("./routes/adminRoutes");
 
 const app = express();
+// Root Route
+app.get("/", (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: "Secure File Transfer Backend is Running!",
+    status: "ONLINE",
+    project: "Secure File Transfer Session State Management System",
+  });
+});
 
 // Initialize Database Connection
 const dbPromise = connectDB().then(async () => {
@@ -21,25 +32,27 @@ const dbPromise = connectDB().then(async () => {
   try {
     const userCount = await User.countDocuments();
     if (userCount === 0) {
-      console.log('[SEED] Database empty. Seeding default Admin and Demo User...');
+      console.log(
+        "[SEED] Database empty. Seeding default Admin and Demo User...",
+      );
       await User.create({
-        username: 'admin_secops',
-        email: 'admin@cybersec.io',
-        password: 'AdminPassword123!',
-        role: 'admin',
+        username: "admin_secops",
+        email: "admin@cybersec.io",
+        password: "AdminPassword123!",
+        role: "admin",
       });
       await User.create({
-        username: 'alice_crypto',
-        email: 'user@cybersec.io',
-        password: 'UserPassword123!',
-        role: 'user',
+        username: "alice_crypto",
+        email: "user@cybersec.io",
+        password: "UserPassword123!",
+        role: "user",
       });
-      console.log('[SEED] Default credentials ready:');
-      console.log('       Admin: admin@cybersec.io / AdminPassword123!');
-      console.log('       User:  user@cybersec.io  / UserPassword123!');
+      console.log("[SEED] Default credentials ready:");
+      console.log("       Admin: admin@cybersec.io / AdminPassword123!");
+      console.log("       User:  user@cybersec.io  / UserPassword123!");
     }
   } catch (seedErr) {
-    console.error('[SEED] Seeding error:', seedErr.message);
+    console.error("[SEED] Seeding error:", seedErr.message);
   }
 
   // Start background session expiration daemon
@@ -50,32 +63,36 @@ const dbPromise = connectDB().then(async () => {
 app.use(helmet());
 app.use(
   cors({
-    origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
+    origin: process.env.CORS_ORIGIN || "http://localhost:5173",
     credentials: true,
-    exposedHeaders: ['Content-Disposition', 'X-File-SHA256', 'X-Decryption-Status'],
-  })
+    exposedHeaders: [
+      "Content-Disposition",
+      "X-File-SHA256",
+      "X-Decryption-Status",
+    ],
+  }),
 );
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
 // Apply rate limiter to all API endpoints
-app.use('/api', apiLimiter);
+app.use("/api", apiLimiter);
 
 // API Routes
-app.use('/api/auth', authRoutes);
-app.use('/api/files', fileRoutes);
-app.use('/api/sessions', sessionRoutes);
-app.use('/api/admin', adminRoutes);
+app.use("/api/auth", authRoutes);
+app.use("/api/files", fileRoutes);
+app.use("/api/sessions", sessionRoutes);
+app.use("/api/admin", adminRoutes);
 
 // Health check endpoint
-app.get('/api/health', (req, res) => {
+app.get("/api/health", (req, res) => {
   res.json({
-    status: 'ONLINE',
-    system: 'Secure File Transfer Session State Management System',
+    status: "ONLINE",
+    system: "Secure File Transfer Session State Management System",
     timestamp: new Date().toISOString(),
-    fsmEngine: 'Active',
-    encryption: 'AES-256-GCM',
-    integrityAlgorithm: 'SHA-256',
+    fsmEngine: "Active",
+    encryption: "AES-256-GCM",
+    integrityAlgorithm: "SHA-256",
   });
 });
 
@@ -90,15 +107,14 @@ if (require.main === module) {
     console.log(`====================================================`);
     console.log(`🛡️  SECURE FILE TRANSFER FSM BACKEND ACTIVE`);
     console.log(`🔒 Port:        http://localhost:${PORT}`);
-    console.log(`📡 Environment: ${process.env.NODE_ENV || 'development'}`);
+    console.log(`📡 Environment: ${process.env.NODE_ENV || "development"}`);
     console.log(`====================================================`);
   });
 }
 
 // Handle unhandled promise rejections
-process.on('unhandledRejection', (err) => {
-  console.error('[UNHANDLED REJECTION]', err.message);
+process.on("unhandledRejection", (err) => {
+  console.error("[UNHANDLED REJECTION]", err.message);
 });
 
 module.exports = { app, server, dbPromise };
-

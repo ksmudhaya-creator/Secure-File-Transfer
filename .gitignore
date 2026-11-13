@@ -1,0 +1,42 @@
+# Dependencies
+node_modules/
+/.pnp
+.pnp.js
+
+# Testing and coverage
+/coverage
+
+# Production builds
+/frontend/dist
+/frontend/dist-ssr
+*.local
+
+# Environment variables
+.env
+.env.production
+.env.local
+
+# Storage and uploads
+backend/uploads/temp/*
+!backend/uploads/temp/.gitkeep
+backend/uploads/encrypted/*
+!backend/uploads/encrypted/.gitkeep
+
+# Editor & OS files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+thumbs.db
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
